@@ -1,7 +1,7 @@
 name: story_stack
 description: Instagram stories like UI with rich animations and customizability. Forked from the story package.
 version: 0.0.1
-homepage: https://github.com/YOUR_GITHUB_USERNAME/story_stack
+homepage: https://github.com/msxenon/story_stack
 
 environment:
   sdk: '>=2.18.2 <3.0.0'
