@@ -7,6 +7,8 @@
 
 Instagram stories like UI with rich animations and customizability.
 
+This package was forked from [https://github.com/santa112358/story](https://github.com/santa112358/story).
+
 ## Usage
 
 `StoryPageView` requires at least three arguments: `itemBuilder`, `pageLength`, and `storyLength`.
