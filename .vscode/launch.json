@@ -15,14 +15,6 @@
       "program": "lib/main.dart",
       "cwd": "example",
       "flutterMode": "profile"
-    },
-    {
-      "name": "story_stack example (Release)",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main.dart",
-      "cwd": "example",
-      "flutterMode": "release"
     }
   ]
 }
