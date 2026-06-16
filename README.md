@@ -1,21 +1,11 @@
 <p align="center">
-  <a href="https://pub.dev/packages/story_stack">
-    <img src="https://raw.githubusercontent.com/santa112358/story/v1.0.0/logo/logo.png" width="240px"/>
-  </a>
-</p>
-<p align="center">
 <a href="https://pub.dev/packages/story_stack"><img src="https://img.shields.io/pub/v/story_stack.svg" alt="version"></a>
 <a href="https://pub.dev/packages/story_stack/score"><img src="https://img.shields.io/pub/popularity/story_stack?logo=dart" alt="likes"></a>
 <a href="https://pub.dev/packages/story_stack/score"><img src="https://img.shields.io/pub/likes/story_stack?logo=dart" alt="popularity"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple.svg" alt="License: MIT"></a>
-<a><img src="https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square" alt="all contributors"></a>
 </p>
 
 Instagram stories like UI with rich animations and customizability.
-
-> `story_stack` is a fork of [`story`](https://github.com/santa112358/story) by Santa Takahashi and contributors, distributed under the same MIT license. All credit for the original design and implementation goes to the upstream project.
-
-![final 2](https://user-images.githubusercontent.com/43510799/103445017-8e497300-4cb2-11eb-8bed-97a7d98461da.gif)
 
 ## Usage
 
@@ -47,7 +37,7 @@ return Scaffold(
 
 The example above just shows 12 stories by 4 pages, which is not practical.
 
-This one is the proper usage, extracted from [example](https://pub.dev/packages/story/example).
+This one is the proper usage, extracted from the `example` directory.
 
 ``` dart
 return Scaffold(
@@ -219,40 +209,3 @@ indicatorAnimationController.value = IndicatorAnimationCommand.pause;
 indicatorAnimationController.value = IndicatorAnimationCommand.resume;
 
 ```
-
-## Contributors
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/msxenon"><img src="https://avatars.githubusercontent.com/msxenon?s=100" width="100px;" alt="msxenon"/><br /><sub><b>msxenon</b></sub></a><br /><a href="https://github.com/msxenon/story_stack/commits?author=msxenon" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://pub.dev/publishers/3tadev.work/packages"><img src="https://avatars.githubusercontent.com/u/43510799?v=4?s=100" width="100px;" alt="Santa Takahashi"/><br /><sub><b>Santa Takahashi</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=santa112358" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/imejiasoft"><img src="https://avatars.githubusercontent.com/u/44923350?v=4?s=100" width="100px;" alt="Isaias Mejia de los Santos"/><br /><sub><b>Isaias Mejia de los Santos</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=imejiasoft" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/badgentlemen"><img src="https://avatars.githubusercontent.com/u/29949358?v=4?s=100" width="100px;" alt="Медик"/><br /><sub><b>Медик</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=badgentlemen" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/alperensoysall"><img src="https://avatars.githubusercontent.com/u/107396431?v=4?s=100" width="100px;" alt="Alperen Soysal"/><br /><sub><b>Alperen Soysal</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=alperensoysall" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/AtixD"><img src="https://avatars.githubusercontent.com/u/17594120?v=4?s=100" width="100px;" alt="AtixD"/><br /><sub><b>AtixD</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=AtixD" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/harshitFinmapp"><img src="https://avatars.githubusercontent.com/u/110468872?v=4?s=100" width="100px;" alt="harshitFinmapp"/><br /><sub><b>harshitFinmapp</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=harshitFinmapp" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dmitry-kotorov"><img src="https://avatars.githubusercontent.com/u/50499930?v=4?s=100" width="100px;" alt="dmitry-kotorov"/><br /><sub><b>dmitry-kotorov</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=dmitry-kotorov" title="Code">💻</a></td>
-    </tr>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rajputsk"><img src="https://avatars.githubusercontent.com/u/25103046?v=4?s=100" width="100px;" alt="sachin kumar rajput"/><br /><sub><b>sachin kumar rajput</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=rajputsk" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/mwothman"><img src="https://avatars.githubusercontent.com/u/56353593?v=4?s=100" width="100px;" alt="Mohamed Othman"/><br /><sub><b>Mohamed Othman</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=mwothman" title="Code">💻</a></td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
