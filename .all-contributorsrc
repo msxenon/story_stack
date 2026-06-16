@@ -1,0 +1,97 @@
+{
+  "projectName": "story",
+  "projectOwner": "santa112358",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": true,
+  "commitConvention": "none",
+  "contributors": [
+    {
+      "login": "santa112358",
+      "name": "Santa Takahashi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/43510799?v=4",
+      "profile": "https://pub.dev/publishers/3tadev.work/packages",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "imejiasoft",
+      "name": "Isaias Mejia de los Santos",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44923350?v=4",
+      "profile": "https://github.com/imejiasoft",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "badgentlemen",
+      "name": "Медик",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29949358?v=4",
+      "profile": "https://github.com/badgentlemen",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "alperensoysall",
+      "name": "Alperen Soysal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/107396431?v=4",
+      "profile": "https://github.com/alperensoysall",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "AtixD",
+      "name": "AtixD",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17594120?v=4",
+      "profile": "https://github.com/AtixD",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "harshitFinmapp",
+      "name": "harshitFinmapp",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110468872?v=4",
+      "profile": "https://github.com/harshitFinmapp",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "dmitry-kotorov",
+      "name": "dmitry-kotorov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50499930?v=4",
+      "profile": "https://github.com/dmitry-kotorov",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "rajputsk",
+      "name": "sachin kumar rajput",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25103046?v=4",
+      "profile": "https://github.com/rajputsk",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "mwothman",
+      "name": "Mohamed Othman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/56353593?v=4",
+      "profile": "https://github.com/mwothman",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "commitType": "docs"
+}
