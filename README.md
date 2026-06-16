@@ -228,6 +228,7 @@ indicatorAnimationController.value = IndicatorAnimationCommand.resume;
 <table>
   <tbody>
     <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/msxenon"><img src="https://avatars.githubusercontent.com/msxenon?s=100" width="100px;" alt="msxenon"/><br /><sub><b>msxenon</b></sub></a><br /><a href="https://github.com/msxenon/story_stack/commits?author=msxenon" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://pub.dev/publishers/3tadev.work/packages"><img src="https://avatars.githubusercontent.com/u/43510799?v=4?s=100" width="100px;" alt="Santa Takahashi"/><br /><sub><b>Santa Takahashi</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=santa112358" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/imejiasoft"><img src="https://avatars.githubusercontent.com/u/44923350?v=4?s=100" width="100px;" alt="Isaias Mejia de los Santos"/><br /><sub><b>Isaias Mejia de los Santos</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=imejiasoft" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/badgentlemen"><img src="https://avatars.githubusercontent.com/u/29949358?v=4?s=100" width="100px;" alt="Медик"/><br /><sub><b>Медик</b></sub></a><br /><a href="https://github.com/santa112358/story/commits?author=badgentlemen" title="Code">💻</a></td>

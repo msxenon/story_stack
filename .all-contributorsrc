@@ -1,6 +1,6 @@
 {
-  "projectName": "story",
-  "projectOwner": "santa112358",
+  "projectName": "story_stack",
+  "projectOwner": "msxenon",
   "repoType": "github",
   "repoHost": "https://github.com",
   "files": [
@@ -10,6 +10,15 @@
   "commit": true,
   "commitConvention": "none",
   "contributors": [
+    {
+      "login": "msxenon",
+      "name": "msxenon",
+      "avatar_url": "https://avatars.githubusercontent.com/msxenon",
+      "profile": "https://github.com/msxenon",
+      "contributions": [
+        "code"
+      ]
+    },
     {
       "login": "santa112358",
       "name": "Santa Takahashi",
