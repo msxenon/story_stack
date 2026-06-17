@@ -38,6 +38,8 @@ class StoryPageView extends StatefulWidget {
     this.indicatorHeight = 2,
     this.indicatorRadius = 10,
     this.showShadow = false,
+    this.enablePullToDismiss = true,
+    this.onDismiss,
   });
 
   ///  visited color of [_Indicators]
@@ -96,14 +98,47 @@ class StoryPageView extends StatefulWidget {
   /// Useful when you need to show any popup over the story
   final ValueNotifier<IndicatorAnimationCommand>? indicatorAnimationController;
 
+  /// Whether dragging down (like Instagram) shrinks/fades the story and,
+  /// if released past the halfway point of the screen, pops it.
+  ///
+  /// Dragging down less than halfway, or releasing above the halfway
+  /// point, snaps the story back to its normal position instead.
+  final bool enablePullToDismiss;
+
+  /// Called right before [StoryPageView] pops itself in response to a
+  /// completed pull-to-dismiss drag (see [enablePullToDismiss]).
+  ///
+  /// Optional — the pop happens regardless of whether this is provided;
+  /// use it for side effects (e.g. analytics, persisting "seen" state),
+  /// not to control whether the pop happens.
+  final VoidCallback? onDismiss;
+
   @override
   State<StoryPageView> createState() => _StoryPageViewState();
 }
 
-class _StoryPageViewState extends State<StoryPageView> {
+class _StoryPageViewState extends State<StoryPageView>
+    with SingleTickerProviderStateMixin {
   late PageController pageController;
 
   late double currentPageValue;
+
+  /// Vertical pixels currently dragged down by the pull-to-dismiss
+  /// gesture. `0` when not dragging (or snapped back).
+  double _dragExtent = 0;
+
+  /// Global Y of the most recent drag update, used at release time to
+  /// decide whether the finger ended up in the bottom half of the screen.
+  double _lastDragGlobalY = 0;
+
+  bool _isDismissDragging = false;
+
+  /// Drives the "snap back to normal position" animation when a drag is
+  /// released without crossing the dismiss threshold. Not used for the
+  /// drag itself, which tracks the finger directly.
+  late final AnimationController _snapBackController;
+  Animation<double>? _snapBackAnimation;
+  VoidCallback? _snapBackListener;
 
   @override
   void initState() {
@@ -120,16 +155,115 @@ class _StoryPageViewState extends State<StoryPageView> {
         currentPageValue = pageController.page ?? currentPageValue;
       });
     });
+
+    _snapBackController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
   }
 
   @override
   void dispose() {
     pageController.dispose();
+    _snapBackController.dispose();
     super.dispose();
+  }
+
+  void _handlePullToDismissStart(DragStartDetails details) {
+    if (!widget.enablePullToDismiss) return;
+    _isDismissDragging = true;
+    _clearSnapBackAnimation();
+    _snapBackController.stop();
+  }
+
+  void _handlePullToDismissUpdate(DragUpdateDetails details) {
+    if (!widget.enablePullToDismiss || !_isDismissDragging) return;
+    setState(() {
+      // Only follow downward drags; ignore upward movement instead of
+      // letting the story get dragged off the top of the screen.
+      _dragExtent = max(0.0, _dragExtent + details.delta.dy);
+      _lastDragGlobalY = details.globalPosition.dy;
+    });
+  }
+
+  void _handlePullToDismissEnd(DragEndDetails details) {
+    if (!widget.enablePullToDismiss || !_isDismissDragging) return;
+    _isDismissDragging = false;
+
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final releasedInBottomHalf = _lastDragGlobalY > screenHeight / 2;
+
+    if (_dragExtent > 0 && releasedInBottomHalf) {
+      widget.onDismiss?.call();
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      } else {
+        // Nothing to pop (e.g. StoryPageView isn't inside a route of its
+        // own) — snap back instead of leaving the story stuck mid-drag.
+        _animateDragBack();
+      }
+    } else {
+      _animateDragBack();
+    }
+  }
+
+  void _animateDragBack() {
+    _clearSnapBackAnimation();
+    final animation = Tween<double>(begin: _dragExtent, end: 0).animate(
+      CurvedAnimation(parent: _snapBackController, curve: Curves.easeOut),
+    );
+    void listener() => setState(() => _dragExtent = animation.value);
+    animation.addListener(listener);
+    _snapBackAnimation = animation;
+    _snapBackListener = listener;
+    _snapBackController.forward(from: 0).whenCompleteOrCancel(() {
+      _clearSnapBackAnimation();
+    });
+  }
+
+  void _clearSnapBackAnimation() {
+    if (_snapBackAnimation != null && _snapBackListener != null) {
+      _snapBackAnimation!.removeListener(_snapBackListener!);
+    }
+    _snapBackAnimation = null;
+    _snapBackListener = null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    // Fully "committed" (scaled/faded as far as it'll go) once dragged
+    // down by half the screen height — the same distance that decides
+    // whether releasing now would dismiss.
+    final dismissProgress = screenHeight > 0
+        ? (_dragExtent / (screenHeight / 2)).clamp(0.0, 1.0)
+        : 0.0;
+    final scale = lerpDouble(1, 0.85, dismissProgress)!;
+    // Instagram-style: the card grows rounded corners as it's pulled down,
+    // instead of staying square the whole time.
+    final cornerRadius = lerpDouble(0, 24, dismissProgress)!;
+
+    return GestureDetector(
+      onVerticalDragStart: _handlePullToDismissStart,
+      onVerticalDragUpdate: _handlePullToDismissUpdate,
+      onVerticalDragEnd: _handlePullToDismissEnd,
+      child: Transform.translate(
+        offset: Offset(0, _dragExtent),
+        child: Transform.scale(
+          scale: scale,
+          child: Opacity(
+            opacity: lerpDouble(1, 0.3, dismissProgress)!,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(cornerRadius),
+              child: _buildPageView(context),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPageView(BuildContext context) {
     return ColoredBox(
       color: widget.backgroundColor,
       child: PageView.builder(
@@ -157,6 +291,7 @@ class _StoryPageViewState extends State<StoryPageView> {
               children: [
                 _StoryPageBuilder.wrapped(
                   showShadow: widget.showShadow,
+                  backgroundColor: widget.backgroundColor,
                   indicatorHeight: widget.indicatorHeight,
                   indicatorRadius: widget.indicatorRadius,
                   pageLength: widget.pageLength,
@@ -215,6 +350,7 @@ class _StoryPageBuilder extends StatefulWidget {
     required this.indicatorHeight,
     required this.indicatorRadius,
     required this.showShadow,
+    required this.backgroundColor,
   });
   final int storyLength;
   final int initialStoryIndex;
@@ -231,6 +367,7 @@ class _StoryPageBuilder extends StatefulWidget {
   final double indicatorHeight;
   final double indicatorRadius;
   final bool showShadow;
+  final Color backgroundColor;
 
   static Widget wrapped({
     required int pageIndex,
@@ -252,6 +389,7 @@ class _StoryPageBuilder extends StatefulWidget {
     required double indicatorHeight,
     required double indicatorRadius,
     required bool showShadow,
+    required Color backgroundColor,
   }) {
     return MultiProvider(
       providers: [
@@ -293,6 +431,7 @@ class _StoryPageBuilder extends StatefulWidget {
         indicatorUnvisitedColor: indicatorUnvisitedColor,
         indicatorHeight: indicatorHeight,
         indicatorRadius: indicatorRadius,
+        backgroundColor: backgroundColor,
       ),
     );
   }
@@ -379,9 +518,7 @@ class _StoryPageBuilderState extends State<_StoryPageBuilder>
       fit: StackFit.loose,
       alignment: Alignment.topLeft,
       children: [
-        Positioned.fill(
-          child: ColoredBox(color: Theme.of(context).scaffoldBackgroundColor),
-        ),
+        Positioned.fill(child: ColoredBox(color: widget.backgroundColor)),
         Positioned.fill(
           child: widget.itemBuilder(
             context,
@@ -438,66 +575,55 @@ class _Gestures extends StatelessWidget {
 
   final AnimationController? animationController;
 
+  /// Resumes the indicator from wherever it was paused, rather than
+  /// restarting it — [AnimationController.forward] (called with no
+  /// `from:`) automatically scales the remaining play time to the
+  /// fraction of progress left, so this isn't "pause and replay the full
+  /// duration", it's "pause and continue with the correct remaining
+  /// duration".
+  void _resume() {
+    if (storyImageLoadingController.value != StoryImageLoadingState.loading) {
+      animationController!.forward();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
-          child: Container(
-            color: Colors.transparent,
+          child: Listener(
+            // Listener's pointer callbacks fire for every pointer that
+            // touches this widget regardless of which gesture recognizer
+            // ends up winning the arena (a tap here, a vertical drag for
+            // pull-to-dismiss elsewhere, a swipe on the PageView, ...).
+            // Tying pause/resume to onTapDown/onTapUp alone meant a tap
+            // that turned into a drag would fire onTapCancel instead of
+            // onTapUp, leaving the indicator paused forever.
+            onPointerDown: (_) => animationController!.stop(),
+            onPointerUp: (_) => _resume(),
+            onPointerCancel: (_) => _resume(),
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
                 animationController!.forward(from: 0);
                 context.read<_StoryStackController>().decrement();
-              },
-              onTapDown: (_) {
-                animationController!.stop();
-              },
-              onTapUp: (_) {
-                if (storyImageLoadingController.value !=
-                    StoryImageLoadingState.loading) {
-                  animationController!.forward();
-                }
-              },
-              onLongPress: () {
-                animationController!.stop();
-              },
-              onLongPressUp: () {
-                if (storyImageLoadingController.value !=
-                    StoryImageLoadingState.loading) {
-                  animationController!.forward();
-                }
               },
             ),
           ),
         ),
         Expanded(
-          child: Container(
-            color: Colors.transparent,
+          child: Listener(
+            onPointerDown: (_) => animationController!.stop(),
+            onPointerUp: (_) => _resume(),
+            onPointerCancel: (_) => _resume(),
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
                 context.read<_StoryStackController>().increment(
                   restartAnimation: () => animationController!.forward(from: 0),
                   completeAnimation: () => animationController!.value = 1,
                 );
-              },
-              onTapDown: (_) {
-                animationController!.stop();
-              },
-              onTapUp: (_) {
-                if (storyImageLoadingController.value !=
-                    StoryImageLoadingState.loading) {
-                  animationController!.forward();
-                }
-              },
-              onLongPress: () {
-                animationController!.stop();
-              },
-              onLongPressUp: () {
-                if (storyImageLoadingController.value !=
-                    StoryImageLoadingState.loading) {
-                  animationController!.forward();
-                }
               },
             ),
           ),

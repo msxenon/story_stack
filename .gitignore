@@ -76,3 +76,4 @@ build/
 # FVM Version Cache
 .fvm/
 pubspec.lock
+test/failures/**

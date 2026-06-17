@@ -38,6 +38,7 @@ class StoryUserCircle extends StatefulWidget {
     this.backgroundColor,
     this.onTap,
     this.delegate,
+    this.placeholderBuilder,
   });
 
   /// Image shown inside the ring.
@@ -100,6 +101,18 @@ class StoryUserCircle extends StatefulWidget {
   /// Defaults to `null`, which falls back to the app-wide
   /// [StoryStack.delegate].
   final StoryStackDelegate? delegate;
+
+  /// Builds the widget shown in place of the avatar while [imageProvider]
+  /// is still loading its first frame (e.g. a network image that hasn't
+  /// downloaded yet).
+  ///
+  /// Defaults to `null`, which uses a plain grey circle with a small
+  /// spinner ([_defaultPlaceholder]). Pass your own builder — a shimmer
+  /// effect, a branded placeholder, a blurhash, etc. — to replace it. The
+  /// builder is given the avatar's diameter so the placeholder can size
+  /// itself to match.
+  final Widget Function(BuildContext context, double diameter)?
+  placeholderBuilder;
 
   @override
   State<StoryUserCircle> createState() => _StoryUserCircleState();
@@ -234,10 +247,40 @@ class _StoryUserCircleState extends State<StoryUserCircle>
                 width: avatarDiameter,
                 height: avatarDiameter,
                 fit: BoxFit.cover,
+                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                  // wasSynchronouslyLoaded: provider resolved instantly
+                  // (e.g. MemoryImage, an already-cached image) — nothing
+                  // to show a placeholder for.
+                  // frame != null: at least one frame has been decoded.
+                  if (wasSynchronouslyLoaded || frame != null) {
+                    return child;
+                  }
+                  return widget.placeholderBuilder?.call(
+                        context,
+                        avatarDiameter,
+                      ) ??
+                      _defaultPlaceholder(avatarDiameter);
+                },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Default placeholder shown while the avatar image loads: a plain grey
+  /// circle with a small centered spinner, sized to fill [diameter].
+  Widget _defaultPlaceholder(double diameter) {
+    return Container(
+      width: diameter,
+      height: diameter,
+      color: Colors.blue,
+      alignment: Alignment.center,
+      child: SizedBox(
+        width: diameter * 0.3,
+        height: diameter * 0.3,
+        child: const CircularProgressIndicator(strokeWidth: 2),
       ),
     );
   }

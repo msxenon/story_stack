@@ -24,6 +24,29 @@ Future<void> _tapBackward(WidgetTester tester) {
   return tester.tapAt(Offset(_screenSize.width * 0.25, _screenSize.height / 2));
 }
 
+/// Pumps [storyPageView] pushed onto a route, so it (and pull-to-dismiss
+/// popping it) has somewhere to pop back to.
+Future<void> _pumpPushed(WidgetTester tester, StoryPageView storyPageView) {
+  return tester.pumpWidget(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Builder(
+        builder: (context) {
+          return Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: (_) => storyPageView),
+              ),
+              child: const Text('open'),
+            ),
+          );
+        },
+      ),
+    ),
+  );
+}
+
 void main() {
   testWidgets('renders itemBuilder content for the initial page/story', (
     tester,
@@ -325,4 +348,156 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'pull-to-dismiss: releasing in the bottom half of the screen pops the '
+    'page',
+    (tester) async {
+      await _setScreenSize(tester);
+      await _pumpPushed(
+        tester,
+        StoryPageView(
+          itemBuilder: (context, pageIndex, storyIndex) => const SizedBox(),
+          storyLength: (_) => 1,
+          pageLength: 1,
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(StoryPageView), findsOneWidget);
+
+      // Starts in the top half (y: 100) and drags down far enough that
+      // the finger ends up in the bottom half (y: 100 + 500 = 600, out of
+      // an 800-tall screen).
+      await tester.dragFrom(
+        Offset(_screenSize.width / 2, 100),
+        const Offset(0, 500),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StoryPageView), findsNothing);
+      expect(find.text('open'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'pull-to-dismiss: releasing in the top half of the screen snaps back '
+    'instead of popping',
+    (tester) async {
+      await _setScreenSize(tester);
+      await _pumpPushed(
+        tester,
+        StoryPageView(
+          itemBuilder: (context, pageIndex, storyIndex) => const SizedBox(),
+          storyLength: (_) => 1,
+          pageLength: 1,
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      // Drags down, but releases at y: 300 — still in the top half of an
+      // 800-tall screen.
+      await tester.dragFrom(
+        Offset(_screenSize.width / 2, 100),
+        const Offset(0, 200),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StoryPageView), findsOneWidget);
+      expect(find.text('open'), findsNothing);
+    },
+  );
+
+  testWidgets('pull-to-dismiss: calls onDismiss right before popping', (
+    tester,
+  ) async {
+    var dismissed = false;
+    await _setScreenSize(tester);
+    await _pumpPushed(
+      tester,
+      StoryPageView(
+        itemBuilder: (context, pageIndex, storyIndex) => const SizedBox(),
+        storyLength: (_) => 1,
+        pageLength: 1,
+        onDismiss: () => dismissed = true,
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.dragFrom(
+      Offset(_screenSize.width / 2, 100),
+      const Offset(0, 500),
+    );
+    await tester.pumpAndSettle();
+
+    expect(dismissed, isTrue);
+    expect(find.byType(StoryPageView), findsNothing);
+  });
+
+  testWidgets(
+    'pauses the indicator while the finger is down and resumes on lift, '
+    'even when the touch turns into a drag instead of a tap',
+    (tester) async {
+      await _setScreenSize(tester);
+      await tester.pumpWidget(
+        _wrapFullScreen(
+          StoryPageView(
+            itemBuilder: (context, pageIndex, storyIndex) => const SizedBox(),
+            storyLength: (_) => 2,
+            pageLength: 1,
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(tester.binding.hasScheduledFrame, isTrue);
+
+      // A touch that moves vertically enough to be recognized as a drag
+      // (rather than a tap) used to fire onTapCancel — which the old
+      // tap-only pause/resume wiring never handled — leaving the
+      // indicator paused forever. Listener-based pause/resume doesn't
+      // care which gesture wins the arena.
+      final gesture = await tester.startGesture(
+        Offset(_screenSize.width / 2, 100),
+      );
+      await tester.pump();
+      expect(tester.binding.hasScheduledFrame, isFalse);
+
+      await gesture.moveBy(const Offset(0, 200));
+      await tester.pump();
+      expect(tester.binding.hasScheduledFrame, isFalse);
+
+      await gesture.up();
+      await tester.pump();
+      expect(tester.binding.hasScheduledFrame, isTrue);
+
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets('pull-to-dismiss: enablePullToDismiss false disables the gesture '
+      'entirely', (tester) async {
+    await _setScreenSize(tester);
+    await _pumpPushed(
+      tester,
+      StoryPageView(
+        itemBuilder: (context, pageIndex, storyIndex) => const SizedBox(),
+        storyLength: (_) => 1,
+        pageLength: 1,
+        enablePullToDismiss: false,
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // Same drag that would otherwise dismiss the page.
+    await tester.dragFrom(
+      Offset(_screenSize.width / 2, 100),
+      const Offset(0, 500),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(StoryPageView), findsOneWidget);
+  });
 }

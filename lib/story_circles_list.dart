@@ -55,6 +55,7 @@ class StoryCirclesList extends StatelessWidget {
       Color(0xFF4F5BD5),
     ],
     this.delegate,
+    this.placeholderBuilder,
   });
 
   /// Users to render, in order.
@@ -90,6 +91,10 @@ class StoryCirclesList extends StatelessWidget {
   /// Forwarded to [StoryUserCircle.delegate]. Defaults to `null`, which
   /// falls back to the app-wide [StoryStack.delegate].
   final StoryStackDelegate? delegate;
+
+  /// Forwarded to [StoryUserCircle.placeholderBuilder].
+  final Widget Function(BuildContext context, double diameter)?
+  placeholderBuilder;
 
   /// Whether any user has a [StoryCircleUser.name] widget, used to decide
   /// whether the row needs extra height reserved below the circles.

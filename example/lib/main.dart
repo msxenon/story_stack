@@ -49,12 +49,25 @@ class MyHomePage extends StatelessWidget {
   }) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) {
+      // A regular MaterialPageRoute is opaque: once its push transition
+      // finishes, Flutter stops painting the route underneath at all —
+      // so when StoryPageView's pull-to-dismiss shrinks/fades the page,
+      // there's nothing behind it but the Scaffold's plain white
+      // background. PageRouteBuilder with opaque: false (and no barrier
+      // scrim) keeps this screen alive and visible underneath instead.
+      PageRouteBuilder<void>(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        transitionDuration: const Duration(milliseconds: 200),
+        reverseTransitionDuration: const Duration(milliseconds: 200),
+        pageBuilder: (context, animation, secondaryAnimation) {
           return StoryPage(
             initialPage: initialPage,
             initialStoryIndex: initialStoryIndex,
           );
+        },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
         },
       ),
     );
@@ -286,6 +299,12 @@ class _StoryPageState extends State<StoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Transparent, not the default opaque white: StoryPageView itself
+      // already paints its own (black) backgroundColor for the story
+      // content. Leaving the Scaffold opaque would paint white over
+      // whatever pull-to-dismiss reveals around/above the shrinking,
+      // rounded card once it's smaller than the full screen.
+      backgroundColor: Colors.transparent,
       body: StoryPageView(
         itemBuilder: (context, pageIndex, storyIndex) {
           final user = sampleUsers[pageIndex];
