@@ -34,7 +34,7 @@ class StoryUserCircle extends StatefulWidget {
       Color(0xFF962FBF),
       Color(0xFF4F5BD5),
     ],
-    this.backgroundColor = Colors.white,
+    this.backgroundColor,
     this.onTap,
     this.delegate,
   });
@@ -86,7 +86,7 @@ class StoryUserCircle extends StatefulWidget {
   final List<Color> gradientColors;
 
   /// Color of the thin gap between the ring and the avatar.
-  final Color backgroundColor;
+  final Color? backgroundColor;
 
   /// Called when the circle is tapped.
   final VoidCallback? onTap;
@@ -202,7 +202,7 @@ class _StoryUserCircleState extends State<StoryUserCircle>
               height: ringInnerDiameter,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: widget.backgroundColor,
+                color: widget.backgroundColor ?? Colors.transparent,
               ),
             ),
             ClipOval(

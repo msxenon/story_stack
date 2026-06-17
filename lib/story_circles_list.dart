@@ -44,7 +44,7 @@ class StoryCirclesList extends StatelessWidget {
     this.maxVisibleSegments,
     this.spacing = 14,
     this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    this.backgroundColor = Colors.white,
+    this.backgroundColor,
     this.shine = true,
     this.seenColor = const Color(0xFFC7C7C7),
     this.gradientColors = const [
@@ -76,7 +76,7 @@ class StoryCirclesList extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
   /// Forwarded to [StoryUserCircle.backgroundColor].
-  final Color backgroundColor;
+  final Color? backgroundColor;
 
   /// Forwarded to [StoryUserCircle.shine].
   final bool shine;

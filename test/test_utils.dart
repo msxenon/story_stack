@@ -74,7 +74,92 @@ final Uint8List kTransparentImageBytes = Uint8List.fromList([
   0x82,
 ]);
 
-ImageProvider testAvatarImageProvider() => MemoryImage(kTransparentImageBytes);
+/// A valid, fully opaque 8x8 solid-color PNG, used as a stand-in for real
+/// avatar photos in tests.
+///
+/// Deliberately opaque (unlike [kTransparentImageBytes]) so that, in
+/// widget/golden tests, the avatar actually covers the gap-fill circle
+/// behind it — making the visual gap between the avatar and the outer
+/// ring show up the same way it does with a real photo, instead of both
+/// rendering as indistinguishable white.
+final Uint8List kOpaqueAvatarImageBytes = Uint8List.fromList([
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x08,
+  0x00,
+  0x00,
+  0x00,
+  0x08,
+  0x08,
+  0x02,
+  0x00,
+  0x00,
+  0x00,
+  0x4B,
+  0x6D,
+  0x29,
+  0xDC,
+  0x00,
+  0x00,
+  0x00,
+  0x11,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0xDA,
+  0x63,
+  0xF0,
+  0xCA,
+  0xEF,
+  0xC1,
+  0x8A,
+  0x18,
+  0x86,
+  0x96,
+  0x04,
+  0x00,
+  0xAF,
+  0x19,
+  0x51,
+  0x41,
+  0x14,
+  0xA0,
+  0x76,
+  0x5F,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82,
+]);
+
+ImageProvider testAvatarImageProvider() => MemoryImage(kOpaqueAvatarImageBytes);
 
 /// Wraps [child] in the minimal scaffolding widgets under test need.
 Widget wrapWithApp(Widget child) {

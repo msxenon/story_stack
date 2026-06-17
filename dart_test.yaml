@@ -1,0 +1,4 @@
+# Per-test safety net: if a widget test hangs (e.g. an animation or image
+# stream that never settles), fail it instead of letting the whole suite
+# block forever.
+timeout: 10s

@@ -60,6 +60,7 @@ class StoryImage extends StatefulWidget {
 
 class _StoryImageState extends State<StoryImage> {
   late final ImageStreamListener imageStreamListener;
+  late ImageStream imageStream;
 
   @override
   void initState() {
@@ -68,13 +69,16 @@ class _StoryImageState extends State<StoryImage> {
     imageStreamListener = ImageStreamListener((image, synchronousCall) {
       storyImageLoadingController.value = StoryImageLoadingState.available;
     });
-    widget.imageProvider
-        .resolve(ImageConfiguration())
-        .addListener(imageStreamListener);
+    imageStream = widget.imageProvider.resolve(ImageConfiguration());
+    imageStream.addListener(imageStreamListener);
   }
 
   @override
   void dispose() {
+    // Without this, the listener stays attached to the resolved image
+    // stream after this widget is gone, which can keep updating the
+    // (global) storyImageLoadingController from a disposed StoryImage.
+    imageStream.removeListener(imageStreamListener);
     super.dispose();
   }
 
