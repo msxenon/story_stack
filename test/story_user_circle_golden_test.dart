@@ -37,10 +37,7 @@ void main() {
   testWidgets('no stories: bare avatar, no ring', (tester) async {
     await pumpGolden(
       tester,
-      StoryUserCircle(
-        imageProvider: testAvatarImageProvider(),
-        storyCount: 0,
-      ),
+      StoryUserCircle(imageProvider: testAvatarImageProvider(), storyCount: 0),
       name: 'story_user_circle_no_stories',
     );
   });

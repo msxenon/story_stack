@@ -30,9 +30,7 @@ void main() {
 
   testWidgets('renders one StoryUserCircle per user', (tester) async {
     await tester.pumpWidget(
-      wrapWithApp(
-        StoryCirclesList(users: buildUsers(), shine: false),
-      ),
+      wrapWithApp(StoryCirclesList(users: buildUsers(), shine: false)),
     );
     await tester.pump();
 
@@ -41,9 +39,7 @@ void main() {
 
   testWidgets('renders each user\'s name label', (tester) async {
     await tester.pumpWidget(
-      wrapWithApp(
-        StoryCirclesList(users: buildUsers(), shine: false),
-      ),
+      wrapWithApp(StoryCirclesList(users: buildUsers(), shine: false)),
     );
     await tester.pump();
 

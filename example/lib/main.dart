@@ -22,7 +22,7 @@ class StoryModel {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   void _openStories(
     BuildContext context,
@@ -251,10 +251,10 @@ final sampleUsers = [
 
 class StoryPage extends StatefulWidget {
   const StoryPage({
-    Key? key,
+    super.key,
     this.initialPage = 0,
     this.initialStoryIndex = 0,
-  }) : super(key: key);
+  });
 
   final int initialPage;
 
@@ -263,7 +263,7 @@ class StoryPage extends StatefulWidget {
   final int initialStoryIndex;
 
   @override
-  _StoryPageState createState() => _StoryPageState();
+  State<StoryPage> createState() => _StoryPageState();
 }
 
 class _StoryPageState extends State<StoryPage> {

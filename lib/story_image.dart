@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// StoryImage
-enum StoryImageLoadingState {
-  loading,
-  available,
-}
+enum StoryImageLoadingState { loading, available }
 
 class StoryImageLoadingController
     extends ValueNotifier<StoryImageLoadingState> {
@@ -68,11 +65,9 @@ class _StoryImageState extends State<StoryImage> {
   void initState() {
     super.initState();
     storyImageLoadingController.value = StoryImageLoadingState.loading;
-    imageStreamListener = ImageStreamListener(
-      (image, synchronousCall) {
-        storyImageLoadingController.value = StoryImageLoadingState.available;
-      },
-    );
+    imageStreamListener = ImageStreamListener((image, synchronousCall) {
+      storyImageLoadingController.value = StoryImageLoadingState.available;
+    });
     widget.imageProvider
         .resolve(ImageConfiguration())
         .addListener(imageStreamListener);

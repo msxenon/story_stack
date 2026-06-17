@@ -37,18 +37,14 @@ void main() {
 
   testWidgets('draws no ring when storyCount is 0', (tester) async {
     await tester.pumpWidget(
-      wrapWithApp(
-        StoryUserCircle(imageProvider: testAvatarImageProvider()),
-      ),
+      wrapWithApp(StoryUserCircle(imageProvider: testAvatarImageProvider())),
     );
     await tester.pump();
 
     expect(find.byType(CustomPaint), findsNothing);
   });
 
-  testWidgets('draws a ring when storyCount is greater than 0', (
-    tester,
-  ) async {
+  testWidgets('draws a ring when storyCount is greater than 0', (tester) async {
     await tester.pumpWidget(
       wrapWithApp(
         StoryUserCircle(
@@ -99,24 +95,23 @@ void main() {
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
-  testWidgets(
-    'does not schedule animation frames when every story is seen',
-    (tester) async {
-      await tester.pumpWidget(
-        wrapWithApp(
-          StoryUserCircle(
-            imageProvider: testAvatarImageProvider(),
-            storyCount: 4,
-            seenCount: 4,
-          ),
+  testWidgets('does not schedule animation frames when every story is seen', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrapWithApp(
+        StoryUserCircle(
+          imageProvider: testAvatarImageProvider(),
+          storyCount: 4,
+          seenCount: 4,
         ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
-      expect(tester.binding.hasScheduledFrame, isFalse);
-    },
-  );
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
 
   testWidgets(
     'schedules animation frames when shine is true and a story is unseen',
@@ -167,55 +162,51 @@ void main() {
     expect(find.byType(CustomPaint), findsOneWidget);
   });
 
-  testWidgets(
-    'uses a custom delegate to decide the max segment count when '
-    'maxVisibleSegments is left unset',
-    (tester) async {
-      await tester.pumpWidget(
-        wrapWithApp(
-          StoryUserCircle(
-            imageProvider: testAvatarImageProvider(),
-            storyCount: 53,
-            shine: false,
-            delegate: const _FixedSegmentsDelegate(7),
-          ),
+  testWidgets('uses a custom delegate to decide the max segment count when '
+      'maxVisibleSegments is left unset', (tester) async {
+    await tester.pumpWidget(
+      wrapWithApp(
+        StoryUserCircle(
+          imageProvider: testAvatarImageProvider(),
+          storyCount: 53,
+          shine: false,
+          delegate: const _FixedSegmentsDelegate(7),
         ),
-      );
-      await tester.pump();
+      ),
+    );
+    await tester.pump();
 
-      expect(tester.takeException(), isNull);
-      expect(find.byType(CustomPaint), findsOneWidget);
-    },
-  );
+    expect(tester.takeException(), isNull);
+    expect(find.byType(CustomPaint), findsOneWidget);
+  });
 
-  testWidgets(
-    'falls back to StoryStack.delegate when delegate is left unset',
-    (tester) async {
-      final originalDelegate = StoryStack.delegate;
-      addTearDown(() => StoryStack.delegate = originalDelegate);
+  testWidgets('falls back to StoryStack.delegate when delegate is left unset', (
+    tester,
+  ) async {
+    final originalDelegate = StoryStack.delegate;
+    addTearDown(() => StoryStack.delegate = originalDelegate);
 
-      var calls = 0;
-      StoryStack.delegate = _CountingDelegate(
-        onCalculate: () => calls++,
-        fixedSegments: 5,
-      );
+    var calls = 0;
+    StoryStack.delegate = _CountingDelegate(
+      onCalculate: () => calls++,
+      fixedSegments: 5,
+    );
 
-      await tester.pumpWidget(
-        wrapWithApp(
-          StoryUserCircle(
-            imageProvider: testAvatarImageProvider(),
-            storyCount: 53,
-            shine: false,
-          ),
+    await tester.pumpWidget(
+      wrapWithApp(
+        StoryUserCircle(
+          imageProvider: testAvatarImageProvider(),
+          storyCount: 53,
+          shine: false,
         ),
-      );
-      await tester.pump();
+      ),
+    );
+    await tester.pump();
 
-      expect(calls, greaterThan(0));
-      expect(tester.takeException(), isNull);
-      expect(find.byType(CustomPaint), findsOneWidget);
-    },
-  );
+    expect(calls, greaterThan(0));
+    expect(tester.takeException(), isNull);
+    expect(find.byType(CustomPaint), findsOneWidget);
+  });
 
   testWidgets(
     'an explicit delegate takes precedence over StoryStack.delegate',
