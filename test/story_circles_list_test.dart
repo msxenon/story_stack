@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:story_stack/story_circles_list.dart';
 import 'package:story_stack/story_user_circle.dart';
@@ -8,19 +9,19 @@ void main() {
   List<StoryCircleUser> buildUsers() => [
     StoryCircleUser(
       id: 'u1',
-      name: 'Alice',
+      name: const Text('Alice'),
       imageProvider: testAvatarImageProvider(),
       storyCount: 3,
     ),
     StoryCircleUser(
       id: 'u2',
-      name: 'Bob',
+      name: const Text('Bob'),
       imageProvider: testAvatarImageProvider(),
       storyCount: 0,
     ),
     StoryCircleUser(
       id: 'u3',
-      name: 'Carol',
+      name: const Text('Carol'),
       imageProvider: testAvatarImageProvider(),
       storyCount: 5,
       seenCount: 5,
@@ -77,5 +78,27 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(StoryUserCircle), findsNothing);
+  });
+
+  testWidgets('renders no label when name is left null', (tester) async {
+    await tester.pumpWidget(
+      wrapWithApp(
+        StoryCirclesList(
+          shine: false,
+          users: [
+            StoryCircleUser(
+              id: 'u1',
+              imageProvider: testAvatarImageProvider(),
+              storyCount: 2,
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(StoryUserCircle), findsOneWidget);
+    expect(find.byType(Text), findsNothing);
   });
 }

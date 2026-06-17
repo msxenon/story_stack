@@ -5,7 +5,7 @@ import 'package:story_stack/story_stack.dart';
 class StoryCircleUser {
   const StoryCircleUser({
     required this.id,
-    required this.name,
+    this.name,
     required this.imageProvider,
     this.storyCount = 0,
     this.seenCount = 0,
@@ -15,8 +15,13 @@ class StoryCircleUser {
   /// callers to look the user back up from [StoryCirclesList.onTapUser].
   final String id;
 
-  /// Name shown below the circle.
-  final String name;
+  /// Widget shown below the circle, e.g. a `Text(userName)`.
+  ///
+  /// Optional — when left `null`, no label (and no extra space for one)
+  /// is rendered, leaving just the circle. Since this takes an arbitrary
+  /// widget rather than a plain string, it isn't limited to text: pass
+  /// any widget you like (an icon, a row, etc).
+  final Widget? name;
 
   /// Avatar image shown inside the ring.
   final ImageProvider imageProvider;
@@ -39,7 +44,6 @@ class StoryCirclesList extends StatelessWidget {
     this.maxVisibleSegments,
     this.spacing = 14,
     this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    this.nameStyle,
     this.backgroundColor = Colors.white,
     this.shine = true,
     this.seenColor = const Color(0xFFC7C7C7),
@@ -71,9 +75,6 @@ class StoryCirclesList extends StatelessWidget {
   /// Padding around the scrollable row.
   final EdgeInsetsGeometry padding;
 
-  /// Style of the name label below each circle.
-  final TextStyle? nameStyle;
-
   /// Forwarded to [StoryUserCircle.backgroundColor].
   final Color backgroundColor;
 
@@ -90,13 +91,19 @@ class StoryCirclesList extends StatelessWidget {
   /// falls back to the app-wide [StoryStack.delegate].
   final StoryStackDelegate? delegate;
 
+  /// Whether any user has a [StoryCircleUser.name] widget, used to decide
+  /// whether the row needs extra height reserved below the circles.
+  bool get _hasAnyName => users.any((user) => user.name != null);
+
   @override
   Widget build(BuildContext context) {
+    // circleSize for the ring/avatar, plus — only if at least one user has
+    // a name widget — room below it for the 4px gap and the label itself,
+    // plus the row's own vertical padding.
+    final height = circleSize + (_hasAnyName ? 48 : 16);
+
     return SizedBox(
-      // circleSize for the ring/avatar, plus room below it for the 4px gap
-      // and the name label (which can wrap font metrics slightly taller
-      // than its nominal line height), plus the row's own vertical padding.
-      height: circleSize + 48,
+      height: height,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: padding,
@@ -122,14 +129,10 @@ class StoryCirclesList extends StatelessWidget {
                   onTap: onTapUser == null ? null : () => onTapUser!(index),
                   delegate: delegate,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  user.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: nameStyle ?? const TextStyle(fontSize: 12),
-                ),
+                if (user.name != null) ...[
+                  const SizedBox(height: 4),
+                  user.name!,
+                ],
               ],
             ),
           );
