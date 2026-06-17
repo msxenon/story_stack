@@ -42,12 +42,19 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatelessWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
-  void _openStories(BuildContext context, int initialPage) {
+  void _openStories(
+    BuildContext context,
+    int initialPage, {
+    int initialStoryIndex = 0,
+  }) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) {
-          return StoryPage(initialPage: initialPage);
+          return StoryPage(
+            initialPage: initialPage,
+            initialStoryIndex: initialStoryIndex,
+          );
         },
       ),
     );
@@ -69,6 +76,8 @@ class MyHomePage extends StatelessWidget {
                     storyCount: user.stories.length,
                   ),
               ],
+              // None of these have been seen, so always open at the first
+              // story (index 0).
               onTapUser: (index) => _openStories(context, index),
             ),
             Text(
@@ -87,7 +96,14 @@ class MyHomePage extends StatelessWidget {
                     seenCount: user.stories.length - 1,
                   ),
               ],
-              onTapUser: (index) => _openStories(context, index),
+              // All but the last story have been seen, so tapping a circle
+              // should jump straight to that first unseen story instead of
+              // making the user re-watch ones they've already seen.
+              onTapUser: (index) => _openStories(
+                context,
+                index,
+                initialStoryIndex: sampleUsers[index].stories.length - 1,
+              ),
             ),
             Text(
               'Stories with names',
@@ -234,9 +250,17 @@ final sampleUsers = [
 ];
 
 class StoryPage extends StatefulWidget {
-  const StoryPage({Key? key, this.initialPage = 0}) : super(key: key);
+  const StoryPage({
+    Key? key,
+    this.initialPage = 0,
+    this.initialStoryIndex = 0,
+  }) : super(key: key);
 
   final int initialPage;
+
+  /// Story index to open [initialPage] on — e.g. the first unseen story
+  /// for the user that was tapped, instead of always starting from 0.
+  final int initialStoryIndex;
 
   @override
   _StoryPageState createState() => _StoryPageState();
@@ -356,8 +380,10 @@ class _StoryPageState extends State<StoryPage> {
         indicatorAnimationController: indicatorAnimationController,
         initialPage: widget.initialPage,
         initialStoryIndex: (pageIndex) {
-          if (pageIndex == 0) {
-            return 1;
+          // Only the page that was actually tapped should resume from the
+          // first unseen story; every other page just starts at 0.
+          if (pageIndex == widget.initialPage) {
+            return widget.initialStoryIndex;
           }
           return 0;
         },
