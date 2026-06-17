@@ -95,12 +95,21 @@ class StoryCirclesList extends StatelessWidget {
   /// whether the row needs extra height reserved below the circles.
   bool get _hasAnyName => users.any((user) => user.name != null);
 
+  /// Extra vertical room reserved below the circle for the 4px gap plus
+  /// the name label itself, when at least one user has one.
+  static const double _labelReserve = 32;
+
   @override
   Widget build(BuildContext context) {
-    // circleSize for the ring/avatar, plus — only if at least one user has
-    // a name widget — room below it for the 4px gap and the label itself,
-    // plus the row's own vertical padding.
-    final height = circleSize + (_hasAnyName ? 48 : 16);
+    // circleSize for the ring/avatar, plus the row's *actual* vertical
+    // padding (previously hardcoded assuming the default `padding`, which
+    // would overflow again if a caller passed a taller one), plus — only
+    // if at least one user has a name widget — room for the label.
+    final resolvedPadding = padding.resolve(Directionality.of(context));
+    final height =
+        circleSize +
+        resolvedPadding.vertical +
+        (_hasAnyName ? _labelReserve : 0);
 
     return SizedBox(
       height: height,
@@ -108,7 +117,7 @@ class StoryCirclesList extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: padding,
         itemCount: users.length,
-        separatorBuilder: (_, __) => SizedBox(width: spacing),
+        separatorBuilder: (_, _) => SizedBox(width: spacing),
         itemBuilder: (context, index) {
           final user = users[index];
           return SizedBox(

@@ -113,6 +113,58 @@ void main() {
     },
   );
 
+  testWidgets(
+    're-resolves and updates loading state when imageProvider changes',
+    (tester) async {
+      storyImageLoadingController.value = StoryImageLoadingState.available;
+
+      final decodedImage = (await tester.runAsync(_decodeTestImage))!;
+      final completer1 = Completer<ImageInfo>();
+      final completer2 = Completer<ImageInfo>();
+
+      await tester.pumpWidget(
+        wrapWithApp(
+          StoryImage(
+            key: const ValueKey('img'),
+            imageProvider: _PendingImageProvider(completer1),
+          ),
+        ),
+      );
+      expect(storyImageLoadingController.value, StoryImageLoadingState.loading);
+
+      completer1.complete(ImageInfo(image: decodedImage, scale: 1));
+      await tester.pumpAndSettle();
+      expect(
+        storyImageLoadingController.value,
+        StoryImageLoadingState.available,
+      );
+
+      // Same key, but a different provider instance: didUpdateWidget should
+      // detect the change and re-resolve instead of keeping the stale
+      // "available" state around from the previous image.
+      await tester.pumpWidget(
+        wrapWithApp(
+          StoryImage(
+            key: const ValueKey('img'),
+            imageProvider: _PendingImageProvider(completer2),
+          ),
+        ),
+      );
+      expect(storyImageLoadingController.value, StoryImageLoadingState.loading);
+
+      completer2.complete(ImageInfo(image: decodedImage, scale: 1));
+      await tester.pumpAndSettle();
+      expect(
+        storyImageLoadingController.value,
+        StoryImageLoadingState.available,
+      );
+
+      // The old provider's stream listener should have been detached, so
+      // completing it (late) afterwards must not throw or affect anything.
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('disposes without throwing', (tester) async {
     await tester.pumpWidget(
       wrapWithApp(

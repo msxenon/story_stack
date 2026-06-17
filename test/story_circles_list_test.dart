@@ -97,4 +97,21 @@ void main() {
     expect(find.byType(StoryUserCircle), findsOneWidget);
     expect(find.byType(Text), findsNothing);
   });
+
+  testWidgets('does not overflow with larger-than-default vertical padding', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrapWithApp(
+        StoryCirclesList(
+          users: buildUsers(),
+          shine: false,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 40),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+  });
 }

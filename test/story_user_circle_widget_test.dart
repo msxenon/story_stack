@@ -236,6 +236,102 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('maps seenCount proportionally onto capped segments instead of '
+      'marking the first N segments fully seen', (tester) async {
+    // storyCount: 100, seenCount: 50 with a fixed cap of 10 segments:
+    // exactly half the segments should read as seen, not "the first 10
+    // stories happen to be seen so all 10 capped segments look seen".
+    await tester.pumpWidget(
+      wrapWithApp(
+        StoryUserCircle(
+          imageProvider: testAvatarImageProvider(),
+          storyCount: 100,
+          seenCount: 50,
+          shine: false,
+          delegate: const _FixedSegmentsDelegate(10),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(CustomPaint), findsOneWidget);
+  });
+
+  testWidgets('does not crash with a negative storyCount', (tester) async {
+    await tester.pumpWidget(
+      wrapWithApp(
+        StoryUserCircle(
+          imageProvider: testAvatarImageProvider(),
+          storyCount: -5,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(CustomPaint), findsNothing);
+  });
+
+  testWidgets('does not crash with a negative seenCount', (tester) async {
+    await tester.pumpWidget(
+      wrapWithApp(
+        StoryUserCircle(
+          imageProvider: testAvatarImageProvider(),
+          storyCount: 4,
+          seenCount: -2,
+          shine: false,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'treats seenCount greater than storyCount as fully seen instead of '
+    'crashing',
+    (tester) async {
+      await tester.pumpWidget(
+        wrapWithApp(
+          StoryUserCircle(
+            imageProvider: testAvatarImageProvider(),
+            storyCount: 4,
+            seenCount: 999,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(tester.takeException(), isNull);
+      // Fully seen (clamped) means there's nothing left to shine for.
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    },
+  );
+
+  testWidgets(
+    'does not crash when strokeWidth/ringGap leave no room for the avatar',
+    (tester) async {
+      await tester.pumpWidget(
+        wrapWithApp(
+          StoryUserCircle(
+            imageProvider: testAvatarImageProvider(),
+            storyCount: 2,
+            shine: false,
+            size: 10,
+            strokeWidth: 8,
+            ringGap: 8,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
 class _CountingDelegate extends StoryStackDelegate {

@@ -291,4 +291,38 @@ void main() {
 
     expect(find.text('close button'), findsOneWidget);
   });
+
+  testWidgets(
+    'disposes its PageController and AnimationControllers cleanly when '
+    'removed from the tree',
+    (tester) async {
+      await _setScreenSize(tester);
+      await tester.pumpWidget(
+        _wrapFullScreen(
+          StoryPageView(
+            itemBuilder: (context, pageIndex, storyIndex) =>
+                Text('p$pageIndex-s$storyIndex'),
+            storyLength: (_) => 2,
+            pageLength: 2,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Navigate a bit first so the PageController and the per-page
+      // AnimationControllers have actually been used, not just created.
+      await _tapForward(tester);
+      await tester.pump();
+
+      // Unmounting StoryPageView disposes its PageController; if that
+      // dispose call were missing (the original bug), FlutterError /
+      // assertion failures from a disposed-but-still-listened-to
+      // controller would otherwise have shown up by the time pumpAndSettle
+      // finishes flushing every pending frame/callback.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

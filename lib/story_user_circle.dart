@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:story_stack/story_stack.dart';
 
@@ -108,9 +109,20 @@ class _StoryUserCircleState extends State<StoryUserCircle>
     with SingleTickerProviderStateMixin {
   late final AnimationController _shineController;
 
-  bool get _hasStories => widget.storyCount > 0;
+  /// [StoryUserCircle.storyCount], guarded against a caller accidentally
+  /// passing a negative value (which would otherwise crash
+  /// `List<bool>.generate` below).
+  int get _storyCount => max(0, widget.storyCount);
 
-  bool get _hasUnseenStories => widget.seenCount < widget.storyCount;
+  /// [StoryUserCircle.seenCount], clamped to a sane `[0, _storyCount]`
+  /// range so an out-of-range value (negative, or larger than
+  /// [StoryUserCircle.storyCount]) can't push the "seen" ratio outside
+  /// 0%-100%.
+  int get _seenCount => widget.seenCount.clamp(0, _storyCount);
+
+  bool get _hasStories => _storyCount > 0;
+
+  bool get _hasUnseenStories => _seenCount < _storyCount;
 
   @override
   void initState() {
@@ -155,20 +167,31 @@ class _StoryUserCircleState extends State<StoryUserCircle>
           radius: radius,
           strokeWidth: widget.strokeWidth,
           gapAngle: widget.gapAngle,
-          storyCount: widget.storyCount,
+          storyCount: _storyCount,
         );
     final segments = !_hasStories
         ? 0
-        : (widget.storyCount > effectiveMaxSegments
+        : (_storyCount > effectiveMaxSegments
               ? effectiveMaxSegments
-              : widget.storyCount);
-    final seenFlags = List<bool>.generate(
-      widget.storyCount,
-      (i) => i < widget.seenCount,
-    );
+              : _storyCount);
 
-    final ringInnerDiameter = widget.size - widget.strokeWidth * 2;
-    final avatarDiameter = ringInnerDiameter - widget.ringGap * 2;
+    // One flag per *drawn* segment, not per story: when segments is capped
+    // below _storyCount, mapping seenCount directly onto the first N
+    // stories would make a handful of capped segments look fully "seen"
+    // regardless of the real seen ratio (e.g. storyCount: 100, seenCount:
+    // 50, segments: 10 would previously mark all 10 segments as seen,
+    // since the first 10 stories happen to be seen). Instead, each segment
+    // i represents the stories up to `(i+1) * storyCount / segments`, and
+    // counts as seen only once every story it represents has been seen —
+    // this also still works for the segments == 1 fallback, where it
+    // naturally reduces to "every story has been seen".
+    final seenFlags = List<bool>.generate(segments, (i) {
+      final storiesUpToThisSegment = ((i + 1) * _storyCount / segments).ceil();
+      return _seenCount >= storiesUpToThisSegment;
+    });
+
+    final ringInnerDiameter = max(0.0, widget.size - widget.strokeWidth * 2);
+    final avatarDiameter = max(0.0, ringInnerDiameter - widget.ringGap * 2);
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -234,9 +257,9 @@ class _StoryRingPainter extends CustomPainter {
   /// Number of arcs to draw. `1` means a single, unsplit ring.
   final int segments;
 
-  /// Seen state per story. Only the first [segments] entries are used when
-  /// [segments] equals `seenFlags.length`; when collapsed to a single ring,
-  /// the ring is considered "seen" only if every story has been seen.
+  /// Seen state per drawn segment — always `segments` long. When
+  /// [segments] is `1` (the collapsed fallback ring), this is a single
+  /// flag for whether every story has been seen.
   final List<bool> seenFlags;
 
   final double strokeWidth;
@@ -291,7 +314,7 @@ class _StoryRingPainter extends CustomPainter {
     final sweepPerSegment = (2 * pi - totalGap) / segments;
     var startAngle = -pi / 2;
     for (var i = 0; i < segments; i++) {
-      final isSeen = i < seenFlags.length ? seenFlags[i] : false;
+      final isSeen = i < seenFlags.length && seenFlags[i];
       canvas.drawArc(
         arcRect,
         startAngle,
@@ -306,11 +329,15 @@ class _StoryRingPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _StoryRingPainter oldDelegate) {
     return oldDelegate.segments != segments ||
-        oldDelegate.seenFlags != seenFlags ||
         oldDelegate.strokeWidth != strokeWidth ||
         oldDelegate.gapAngle != gapAngle ||
         oldDelegate.seenColor != seenColor ||
-        oldDelegate.gradientColors != gradientColors ||
-        oldDelegate.shineRotation != shineRotation;
+        oldDelegate.shineRotation != shineRotation ||
+        // seenFlags/gradientColors are rebuilt as new list instances on
+        // every build (List.generate, literal), so a reference (!=)
+        // comparison here would always be true and make shouldRepaint
+        // pointless — compare contents instead.
+        !listEquals(oldDelegate.seenFlags, seenFlags) ||
+        !listEquals(oldDelegate.gradientColors, gradientColors);
   }
 }

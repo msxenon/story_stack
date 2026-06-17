@@ -1,0 +1,6 @@
+# This file configures the analyzer for the story_stack package itself.
+# Previously only example/ had lint coverage — lib/ had none.
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:

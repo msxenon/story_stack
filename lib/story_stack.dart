@@ -1,5 +1,3 @@
-library story_stack;
-
 import 'package:story_stack/story_stack_delegate.dart';
 
 export 'story_page_view.dart';

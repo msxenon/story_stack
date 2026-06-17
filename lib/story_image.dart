@@ -60,17 +60,43 @@ class StoryImage extends StatefulWidget {
 
 class _StoryImageState extends State<StoryImage> {
   late final ImageStreamListener imageStreamListener;
-  late ImageStream imageStream;
+  ImageStream? imageStream;
 
   @override
   void initState() {
     super.initState();
-    storyImageLoadingController.value = StoryImageLoadingState.loading;
     imageStreamListener = ImageStreamListener((image, synchronousCall) {
       storyImageLoadingController.value = StoryImageLoadingState.available;
     });
-    imageStream = widget.imageProvider.resolve(ImageConfiguration());
-    imageStream.addListener(imageStreamListener);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Image resolution depends on inherited widgets (MediaQuery, etc. via
+    // createLocalImageConfiguration), which aren't fully available until
+    // didChangeDependencies — resolving in initState would miss them.
+    _resolveImage();
+  }
+
+  @override
+  void didUpdateWidget(covariant StoryImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.imageProvider != oldWidget.imageProvider) {
+      _resolveImage();
+    }
+  }
+
+  void _resolveImage() {
+    storyImageLoadingController.value = StoryImageLoadingState.loading;
+    final oldImageStream = imageStream;
+    imageStream = widget.imageProvider.resolve(
+      createLocalImageConfiguration(context),
+    );
+    if (imageStream!.key != oldImageStream?.key) {
+      oldImageStream?.removeListener(imageStreamListener);
+      imageStream!.addListener(imageStreamListener);
+    }
   }
 
   @override
@@ -78,7 +104,7 @@ class _StoryImageState extends State<StoryImage> {
     // Without this, the listener stays attached to the resolved image
     // stream after this widget is gone, which can keep updating the
     // (global) storyImageLoadingController from a disposed StoryImage.
-    imageStream.removeListener(imageStreamListener);
+    imageStream?.removeListener(imageStreamListener);
     super.dispose();
   }
 

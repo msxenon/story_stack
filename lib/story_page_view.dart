@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:story_stack/story_image.dart';
 
-typedef _StoryItemBuilder =
+typedef StoryItemBuilder =
     Widget Function(BuildContext context, int pageIndex, int storyIndex);
 
-typedef _StoryConfigFunction = int Function(int pageIndex);
+typedef StoryConfigFunction = int Function(int pageIndex);
 
 enum IndicatorAnimationCommand { pause, resume }
 
@@ -16,8 +16,8 @@ enum IndicatorAnimationCommand { pause, resume }
 ///
 /// [itemBuilder], [storyLength], [pageLength] are required.
 class StoryPageView extends StatefulWidget {
-  StoryPageView({
-    Key? key,
+  const StoryPageView({
+    super.key,
     required this.itemBuilder,
     required this.storyLength,
     required this.pageLength,
@@ -38,7 +38,7 @@ class StoryPageView extends StatefulWidget {
     this.indicatorHeight = 2,
     this.indicatorRadius = 10,
     this.showShadow = false,
-  }) : super(key: key);
+  });
 
   ///  visited color of [_Indicators]
   final Color indicatorVisitedColor;
@@ -47,21 +47,21 @@ class StoryPageView extends StatefulWidget {
   final Color indicatorUnvisitedColor;
 
   /// Function to build story content
-  final _StoryItemBuilder itemBuilder;
+  final StoryItemBuilder itemBuilder;
 
   /// Function to build story content
   /// Components with gesture actions are expected
   /// Placed above the story gestures.
-  final _StoryItemBuilder? gestureItemBuilder;
+  final StoryItemBuilder? gestureItemBuilder;
 
   /// decides length of story for each page
-  final _StoryConfigFunction storyLength;
+  final StoryConfigFunction storyLength;
 
   /// length of [StoryPageView]
   final int pageLength;
 
   /// Initial index of story for each page
-  final _StoryConfigFunction? initialStoryIndex;
+  final StoryConfigFunction? initialStoryIndex;
 
   /// padding of [_Indicators]
   final EdgeInsetsGeometry indicatorPadding;
@@ -97,13 +97,13 @@ class StoryPageView extends StatefulWidget {
   final ValueNotifier<IndicatorAnimationCommand>? indicatorAnimationController;
 
   @override
-  _StoryPageViewState createState() => _StoryPageViewState();
+  State<StoryPageView> createState() => _StoryPageViewState();
 }
 
 class _StoryPageViewState extends State<StoryPageView> {
-  PageController? pageController;
+  late PageController pageController;
 
-  var currentPageValue;
+  late double currentPageValue;
 
   @override
   void initState() {
@@ -112,11 +112,20 @@ class _StoryPageViewState extends State<StoryPageView> {
 
     currentPageValue = widget.initialPage.toDouble();
 
-    pageController!.addListener(() {
+    pageController.addListener(() {
       setState(() {
-        currentPageValue = pageController!.page;
+        // PageController.page is null until the PageView has attached and
+        // laid out at least once; fall back to the last known value
+        // instead of letting a transient null reach the arithmetic below.
+        currentPageValue = pageController.page ?? currentPageValue;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -130,9 +139,9 @@ class _StoryPageViewState extends State<StoryPageView> {
         itemBuilder: (context, index) {
           final isLeaving = (index - currentPageValue) <= 0;
           final t = (index - currentPageValue);
-          final rotationY = lerpDouble(0, 30, t as double)!;
-          final maxOpacity = 0.8;
-          final num opacity = lerpDouble(
+          final rotationY = lerpDouble(0, 30, t)!;
+          const maxOpacity = 0.8;
+          final double opacity = lerpDouble(
             0,
             maxOpacity,
             t.abs(),
@@ -155,9 +164,9 @@ class _StoryPageViewState extends State<StoryPageView> {
                   initialStoryIndex: widget.initialStoryIndex?.call(index) ?? 0,
                   pageIndex: index,
                   animateToPage: (index) {
-                    pageController!.animateToPage(
+                    pageController.animateToPage(
                       index,
-                      duration: Duration(milliseconds: 500),
+                      duration: const Duration(milliseconds: 500),
                       curve: Curves.ease,
                     );
                   },
@@ -176,8 +185,8 @@ class _StoryPageViewState extends State<StoryPageView> {
                 if (isPaging && !isLeaving)
                   Positioned.fill(
                     child: Opacity(
-                      opacity: opacity as double,
-                      child: ColoredBox(color: Colors.black87),
+                      opacity: opacity,
+                      child: const ColoredBox(color: Colors.black87),
                     ),
                   ),
               ],
@@ -191,7 +200,6 @@ class _StoryPageViewState extends State<StoryPageView> {
 
 class _StoryPageBuilder extends StatefulWidget {
   const _StoryPageBuilder._({
-    Key? key,
     required this.storyLength,
     required this.initialStoryIndex,
     required this.pageIndex,
@@ -207,14 +215,14 @@ class _StoryPageBuilder extends StatefulWidget {
     required this.indicatorHeight,
     required this.indicatorRadius,
     required this.showShadow,
-  }) : super(key: key);
+  });
   final int storyLength;
   final int initialStoryIndex;
   final int pageIndex;
   final bool isCurrentPage;
   final bool isPaging;
-  final _StoryItemBuilder itemBuilder;
-  final _StoryItemBuilder? gestureItemBuilder;
+  final StoryItemBuilder itemBuilder;
+  final StoryItemBuilder? gestureItemBuilder;
   final Duration indicatorDuration;
   final EdgeInsetsGeometry indicatorPadding;
   final ValueNotifier<IndicatorAnimationCommand>? indicatorAnimationController;
@@ -233,8 +241,8 @@ class _StoryPageBuilder extends StatefulWidget {
     required bool isCurrentPage,
     required bool isPaging,
     required VoidCallback? onPageLimitReached,
-    required _StoryItemBuilder itemBuilder,
-    _StoryItemBuilder? gestureItemBuilder,
+    required StoryItemBuilder itemBuilder,
+    StoryItemBuilder? gestureItemBuilder,
     required Duration indicatorDuration,
     required EdgeInsetsGeometry indicatorPadding,
     required ValueNotifier<IndicatorAnimationCommand>?
@@ -247,9 +255,9 @@ class _StoryPageBuilder extends StatefulWidget {
   }) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_context) => _StoryLimitController()),
+        ChangeNotifierProvider(create: (context) => _StoryLimitController()),
         ChangeNotifierProvider(
-          create: (_context) => _StoryStackController(
+          create: (context) => _StoryStackController(
             storyLength: storyLength,
             onPageBack: () {
               if (pageIndex != 0) {
@@ -258,7 +266,7 @@ class _StoryPageBuilder extends StatefulWidget {
             },
             onPageForward: () {
               if (pageIndex == pageLength - 1) {
-                _context.read<_StoryLimitController>().onPageLimitReached(
+                context.read<_StoryLimitController>().onPageLimitReached(
                   onPageLimitReached,
                 );
               } else {
@@ -290,7 +298,7 @@ class _StoryPageBuilder extends StatefulWidget {
   }
 
   @override
-  _StoryPageBuilderState createState() => _StoryPageBuilderState();
+  State<_StoryPageBuilder> createState() => _StoryPageBuilderState();
 }
 
 class _StoryPageBuilderState extends State<_StoryPageBuilder>
@@ -356,6 +364,10 @@ class _StoryPageBuilderState extends State<_StoryPageBuilder>
   void dispose() {
     widget.indicatorAnimationController?.removeListener(indicatorListener);
     storyImageLoadingController.removeListener(imageLoadingListener);
+    // animationController is created here, so it should be disposed here
+    // too, rather than relying on the child _Indicators widget (which
+    // doesn't own it) to do it.
+    animationController.dispose();
 
     super.dispose();
   }
@@ -422,8 +434,7 @@ class _StoryPageBuilderState extends State<_StoryPageBuilder>
 }
 
 class _Gestures extends StatelessWidget {
-  const _Gestures({Key? key, required this.animationController})
-    : super(key: key);
+  const _Gestures({required this.animationController});
 
   final AnimationController? animationController;
 
@@ -498,7 +509,6 @@ class _Gestures extends StatelessWidget {
 
 class _Indicators extends StatefulWidget {
   const _Indicators({
-    Key? key,
     required this.animationController,
     required this.storyLength,
     required this.isCurrentPage,
@@ -509,7 +519,7 @@ class _Indicators extends StatefulWidget {
     required this.indicatorHeight,
     required this.indicatorRadius,
     required this.indicatorAnimationController,
-  }) : super(key: key);
+  });
   final int storyLength;
   final AnimationController? animationController;
   final EdgeInsetsGeometry padding;
@@ -522,7 +532,7 @@ class _Indicators extends StatefulWidget {
   final ValueNotifier<IndicatorAnimationCommand>? indicatorAnimationController;
 
   @override
-  _IndicatorsState createState() => _IndicatorsState();
+  State<_Indicators> createState() => _IndicatorsState();
 }
 
 class _IndicatorsState extends State<_Indicators> {
@@ -583,23 +593,19 @@ class _IndicatorsState extends State<_Indicators> {
     );
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    widget.animationController!.dispose();
-  }
+  // animationController is owned and disposed by _StoryPageBuilderState
+  // (which created it and passes it down) — not here.
 }
 
 class _Indicator extends StatelessWidget {
   const _Indicator({
-    Key? key,
     required this.index,
     required this.value,
     required this.indicatorVisitedColor,
     required this.indicatorUnvisitedColor,
     required this.indicatorHeight,
     required this.indicatorRadius,
-  }) : super(key: key);
+  });
   final int index;
   final double value;
   final Color indicatorVisitedColor;
@@ -632,7 +638,7 @@ class _StoryStackController extends ValueNotifier<int> {
     required this.storyLength,
     required this.onPageForward,
     required this.onPageBack,
-    initialStoryIndex = 0,
+    int initialStoryIndex = 0,
   }) : super(initialStoryIndex);
   final int storyLength;
   final VoidCallback onPageForward;
