@@ -142,6 +142,7 @@ class StoryCirclesList extends StatelessWidget {
                   backgroundColor: backgroundColor,
                   onTap: onTapUser == null ? null : () => onTapUser!(index),
                   delegate: delegate,
+                  placeholderBuilder: placeholderBuilder,
                 ),
                 if (user.name != null) ...[
                   const SizedBox(height: 4),

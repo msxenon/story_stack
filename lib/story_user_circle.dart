@@ -277,11 +277,6 @@ class _StoryUserCircleState extends State<StoryUserCircle>
       height: diameter,
       color: Colors.blue,
       alignment: Alignment.center,
-      child: SizedBox(
-        width: diameter * 0.3,
-        height: diameter * 0.3,
-        child: const CircularProgressIndicator(strokeWidth: 2),
-      ),
     );
   }
 }
